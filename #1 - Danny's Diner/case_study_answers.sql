@@ -18,17 +18,16 @@
 -- 1. What is the total amount each customer spent at the restaurant
 
 select 	s.customer_id
-		, sum(m.price)
+	, sum(m.price)
 from sales as s
-	join menu as m 
-		on s.product_id = m.product_id
+	join menu as m on s.product_id = m.product_id
 group by 1;
 
 
 -- 2. How many days has each customer visited the restaurant?
 
 select  customer_id
-		, count( distinct order_date) as visists
+	, count(distinct order_date) as visists
 from sales
 group by 1;
 
@@ -37,19 +36,17 @@ group by 1;
 
 with cte as (
 	select 	s.customer_id
-			, m.product_name
-			, s.order_date
-			, dense_rank() over (
-			partition by s.customer_id
-			order by s.order_date) as ranking
+		, m.product_name
+		, s.order_date
+		, dense_rank() over (
+		partition by s.customer_id
+		order by s.order_date) as ranking
 	from sales as s
-		join menu as m 
-			on s.product_id = m.product_id
+		join menu as m on s.product_id = m.product_id
 	group by 1, 2, 3
-			)
-
+)
 select	customer_id
-		, product_name
+	, product_name
 from cte
 where ranking = 1;
 
@@ -58,15 +55,13 @@ where ranking = 1;
 
 with cte as (
 	select m.product_name
-			, count(s.product_id) as purchased
+		, count(s.product_id) as purchased
 	from sales as s
-		join menu as m
-			on s.product_id = m.product_id
+		join menu as m on s.product_id = m.product_id
 	group by 1
-			)
-
+)
 select 	product_name
-		, purchased
+	, purchased
 from cte
 order by purchased desc
 limit 1;
@@ -76,20 +71,18 @@ limit 1;
 
 with cte as (
 	select 	s.customer_id
-			, m.product_name
-			, count(s.product_id) as purchased
-			, dense_rank () over (
-			partition by s.customer_id
-			order by count(s.product_id) desc) as ranking
+		, m.product_name
+		, count(s.product_id) as purchased
+		, dense_rank () over (
+		partition by s.customer_id
+		order by count(s.product_id) desc) as ranking
 	from sales as s
-		join menu as m
-			on s.product_id = m.product_id
+		join menu as m on s.product_id = m.product_id
 	group by 1, 2
-			)
-
+)
 select 	customer_id
-		, product_name
-		, purchased
+	, product_name
+	, purchased
 from cte
 where ranking = 1;
 
@@ -98,21 +91,18 @@ where ranking = 1;
 
 with cte as (
 	select 	s.customer_id
-			, m.product_name 
-			, s.order_date
-			, dense_rank () over (
-			partition by s.customer_id
-			order by s.order_date) as ranking
+		, m.product_name 
+		, s.order_date
+		, dense_rank () over (
+		partition by s.customer_id
+		order by s.order_date) as ranking
 	from sales as s
-		join menu as m
-			on s.product_id = m.product_id
-		join members as mem
-			on s.customer_id = mem.customer_id
+		join menu as m on s.product_id = m.product_id
+		join members as mem on s.customer_id = mem.customer_id
 	where s.order_date > mem.join_date
-			)
-			
+)		
 select 	customer_id
-		, product_name 
+	, product_name 
 from cte
 where ranking = 1;
 
@@ -121,21 +111,18 @@ where ranking = 1;
 
 with cte as (
 	select 	s.customer_id
-			, m.product_name 
-			, s.order_date
-			, dense_rank () over (
-			partition by s.customer_id
-			order by s.order_date desc) as ranking
+		, m.product_name 
+		, s.order_date
+		, dense_rank () over (
+		partition by s.customer_id
+		order by s.order_date desc) as ranking
 	from sales as s
-		join menu as m
-			on s.product_id = m.product_id
-		join members as mem
-			on s.customer_id = mem.customer_id
+		join menu as m on s.product_id = m.product_id
+		join members as mem on s.customer_id = mem.customer_id
 	where s.order_date < mem.join_date
-			)
-			
+)		
 select 	customer_id
-		, product_name 
+	, product_name 
 from cte
 where ranking = 1;
 
@@ -143,13 +130,11 @@ where ranking = 1;
 -- 8. What is the total items and amount spent for each member before they became a member?
 
 select 	s.customer_id
-		, count(s.product_id) as items
-		, sum(m.price) as amount
+	, count(s.product_id) as items
+	, sum(m.price) as amount
 from sales as s
-	join menu as m
-		on s.product_id = m.product_id
-	join members as mem
-		on s.customer_id = mem.customer_id
+	join menu as m on s.product_id = m.product_id
+	join members as mem on s.customer_id = mem.customer_id
 where s.order_date < mem.join_date
 group by 1
 order by 1;
@@ -158,13 +143,12 @@ order by 1;
 -- 9.  If each $1 spent equates to 10 points and sushi has a 2x points multiplier - how many points would each customer have?
 
 select 	s.customer_id
-		, sum(case when product_name = 'sushi'
-			  then m.price *20
-			  else m.price *10
-			  end) as points
+	, sum(
+		case when product_name = 'sushi' then m.price *20
+		  else m.price *10
+		end) as points
 from sales as s
-	join menu as m
-		on s.product_id = m.product_id
+	join menu as m on s.product_id = m.product_id
 group by 1
 order by 1; 
 
@@ -173,17 +157,14 @@ order by 1;
 -- --  not just sushi - how many points do customer A and B have at the end of January?
 
 select 	s.customer_id
-		, sum(
-			case 
-				when product_name = 'sushi' then m.price *20
-			 	when s.order_date between mem.join_date and (mem.join_date + interval '6 days') then m.price *20
-			  	else m.price *10
-			end) as points
+	, sum(
+		case 	when product_name = 'sushi' then m.price *20
+			when s.order_date between mem.join_date and (mem.join_date + interval '6 days') then m.price *20
+			else m.price *10
+		end) as points
 from sales as s
-	join menu as m
-		on s.product_id = m.product_id
-	join members as mem
-		on s.customer_id = mem.customer_id
+	join menu as m on s.product_id = m.product_id
+	join members as mem on s.customer_id = mem.customer_id
 group by 1; 
 
 
@@ -196,19 +177,16 @@ group by 1;
 
 create view order_info as 
 select 	s.customer_id
-		, s.order_date	
-		, m.product_name	
-		, m.price	
-		, case 
-			when mem.join_date is null then 'N'
-			when s.order_date < mem.join_date then 'N'
-			else 'Y'
-				end as member
+	, s.order_date	
+	, m.product_name	
+	, m.price	
+	, case 	when mem.join_date is null then 'N'
+		when s.order_date < mem.join_date then 'N'
+		else 'Y'
+	end as member
 from sales as s
-		join menu as m
-			on s.product_id = m.product_id
-		left join members as mem
-			on s.customer_id = mem.customer_id;
+	join menu as m on s.product_id = m.product_id
+	left join members as mem on s.customer_id = mem.customer_id;
 
 
 -- Danny also requires further information about the ranking of customer products, 
@@ -216,13 +194,11 @@ from sales as s
 -- -- when customers are not yet part of the loyalty program.
 
 select *
-		, (case
-			when member = 'N' then null
-				else 
-				rank () over (
-				partition by customer_id, member
-				order by order_date)
-			end) as ranking
+	, (case	when member = 'N' then null
+		else rank () over (
+		partition by customer_id, member
+		order by order_date)
+	end) as ranking
 from order_info;
 
 	
