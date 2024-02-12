@@ -25,7 +25,7 @@ The menu table maps the product_id to the actual product_name and price of each 
 ### Table 3: members
 The final members table captures the join_date when a customer_id joined the beta version of the Danny’s Diner loyalty program.
 ### Entity Relationship Diagram
-<img src="Entity_Rel_Diagram.png" alt="Entity Relationship Diagram" width="40%" />
+<img src="entity_rel_diagram.png" alt="Entity Relationship Diagram" width="40%" />
 
 ## Case Study Questions
 
